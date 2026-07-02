@@ -3,6 +3,7 @@ import { isMuted, safePlay } from '../lib/audio';
 import { getDebugScreen } from '../lib/debugScreen';
 import { announce } from '../lib/liveRegion';
 import { submitScore } from '../lib/leaderboard';
+import { getCanvasSize } from '../lib/geometry';
 import { breakdownLines, type ScoreBreakdown } from '../lib/score';
 import { COUNT_CHIME_SFX, COUNT_TICK_SFX, DIE_SFX } from '../assets';
 import type { AppContext, ScreenRoutes, SubmissionResult } from '../lib/appContext';
@@ -105,6 +106,10 @@ export function createGameOverScreen(
         </div>
       </section>
     `);
+
+  const size = getCanvasSize();
+  (screen.querySelector('.game-over-bg, .win-bg') as HTMLElement | null)
+    ?.style.setProperty('--stage-size', `${size}px`);
 
   const title = screen.querySelector('.go-title') as HTMLElement;
   title.tabIndex = -1;

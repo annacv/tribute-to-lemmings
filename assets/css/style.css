@@ -332,8 +332,8 @@ canvas {
 
 .game-over-bg,
 .win-bg {
-  width: min(100vw, 100dvh, 532px);
-  aspect-ratio: 1;
+  width: var(--stage-size);
+  height: var(--stage-size);
 }
 
 .ranking-canvas {
