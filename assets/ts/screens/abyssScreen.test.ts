@@ -16,13 +16,16 @@ describe('abyss screen win path', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.stubGlobal('Image', SettledImage);
+
     ({ sources: audioSrcs } = stubAudioTracking());
     abysses = [];
     const origStart = AbyssGame.prototype.startGame;
+
     vi.spyOn(AbyssGame.prototype, 'startGame').mockImplementation(function (this: AbyssGame) {
       abysses.push(this);
       origStart.call(this);
     });
+
     localStorage.setItem('audio-muted', '0');
     localStorage.setItem('surface-modal-dismissed', '1');
     localStorage.setItem('tunnel-modal-dismissed', '1');
@@ -46,6 +49,7 @@ describe('abyss screen win path', () => {
     vi.advanceTimersByTime(2000);
     const game = abysses[0];
     expect(game).toBeDefined();
+
     const sfx = vi.spyOn(game.sfx, 'play');
     if (game.player) game.player.lives = Number.MAX_SAFE_INTEGER;
     game.stepCount = ABYSS_TIME_BUDGET_S * 60 - 1;
@@ -54,10 +58,9 @@ describe('abyss screen win path', () => {
     game['host']['frame']();
 
     vi.advanceTimersByTime(1000);
-    expect(sfx).toHaveBeenCalledWith('letsgo');
 
-    const winCanvas = document.querySelector('.win-canvas');
-    expect(winCanvas).not.toBeNull();
+    expect(sfx).toHaveBeenCalledWith('letsgo');
+    expect(document.querySelector('.win-bg')).not.toBeNull();
     expect(document.querySelectorAll('.go-count-line').length).toBeGreaterThan(0);
     expect(audioSrcs.some((src) => /die\.wav/i.test(src))).toBe(false);
 
@@ -65,6 +68,7 @@ describe('abyss screen win path', () => {
 
     vi.advanceTimersByTime(2500);
     expect(rankingStarts()).toBe(0);
+
     vi.advanceTimersByTime(2600);
     expect(document.querySelector('.the-end-screen')).not.toBeNull();
     expect(document.querySelector('.ranking-screen')).toBeNull();
@@ -93,6 +97,7 @@ describe('abyss screen win path', () => {
       if (shownScore() !== total) expect(rankingStarts()).toBe(0);
       vi.advanceTimersByTime(100);
     }
+
     vi.advanceTimersByTime(1000);
     expect(shownScore()).toBe(total);
     expect(rankingStarts()).toBe(0);

@@ -9,6 +9,71 @@ import type { AppContext, ScreenRoutes, SubmissionResult } from '../lib/appConte
 
 const GAME_OVER_TRANSITION_MS = 2000;
 const GAME_OVER_COUNT_HOLD_MS = 5000;
+
+const COUNT_LINE_START_MS = 300; // initial delay (ms) before the first line appears
+const COUNT_LINE_STAGGER_MS = 250; // time between each line (ms)
+const COUNT_ROLL_MS = 500; // duration of score roll-up (ms)
+const COUNT_ROLL_TICK_MS = 40; // time between each roll tick (ms)
+
+type CountLine = ReturnType<typeof breakdownLines>[number];
+
+function renderCountLines(countList: Element, lines: readonly CountLine[]): HTMLLIElement[] {
+  return lines.map(({ label, rule, value }) => {
+    const li = document.createElement('li');
+    li.className = 'go-count-line';
+    li.innerHTML = `<span class="go-count-label">${label}</span><span class="go-count-rule">${rule}</span><span class="go-count-value">${value}</span>`;
+    countList.appendChild(li);
+    return li;
+  });
+}
+
+function showReducedMotionCount(lineEls: readonly HTMLLIElement[], score: Element, total: number): void {
+  lineEls.forEach((li) => li.classList.add('show'));
+  score.textContent = String(total);
+  announce(`Score: ${total}`);
+}
+
+function showStaticScore(score: Element, total: number): void {
+  score.textContent = String(total);
+  announce(`Score: ${total}`);
+}
+
+function animateCountSequence(
+  ctx: AppContext,
+  score: Element,
+  lineEls: readonly HTMLLIElement[],
+  total: number,
+  playOptionalSfx: (src: string) => void,
+): void {
+  score.textContent = '0';
+
+  // add each line with a delay based on its index (stagger)
+  lineEls.forEach((li, i) => setTimeout(() => {
+    li.classList.add('show');
+    playOptionalSfx(COUNT_TICK_SFX);
+  }, COUNT_LINE_START_MS + i * COUNT_LINE_STAGGER_MS));
+
+  const rollStartMs = COUNT_LINE_START_MS + lineEls.length * COUNT_LINE_STAGGER_MS;
+  const rollStep = Math.ceil(total / (COUNT_ROLL_MS / COUNT_ROLL_TICK_MS));
+
+  // start the roll when the lines are all shown
+  setTimeout(() => {
+    playOptionalSfx(COUNT_CHIME_SFX);
+
+    const rollTimer = setInterval(() => {
+      if (!ctx.root.contains(score)) { clearInterval(rollTimer); return; }
+      const next = Math.min(total, Number(score.textContent) + rollStep);
+      score.textContent = String(next);
+
+      // stop the roll when the score reaches the total
+      if (next >= total) {
+        clearInterval(rollTimer);
+        announce(`Score: ${total}`);
+      }
+    }, COUNT_ROLL_TICK_MS);
+  }, rollStartMs);
+}
+
 export function createGameOverScreen(
   ctx: AppContext,
   routes: ScreenRoutes,
@@ -20,9 +85,9 @@ export function createGameOverScreen(
   const hasCount = breakdown.tunnelTime + breakdown.abyssTime + breakdown.stalactiteBonus + breakdown.levelsBonus > 0;
   const isWin = variant === 'win';
 
-  const canvasHtml = isWin
-    ? '<div class="win-canvas" aria-hidden="true"></div>'
-    : '<div class="game-over-canvas" aria-hidden="true"></div>';
+  const backgroundHtml = isWin
+    ? '<div class="win-bg" aria-hidden="true"></div>'
+    : '<div class="game-over-bg" aria-hidden="true"></div>';
 
   const headingHtml = isWin
     ? '<p class="go-boom">CONGRATS!!!</p><h1 class="go-title">&gt; You made it!</h1>'
@@ -31,7 +96,7 @@ export function createGameOverScreen(
   const screen = ctx.buildDom(`
       <section class="section-container game-over-screen">
         <div class="game-stage">
-          ${canvasHtml}
+          ${backgroundHtml}
           <div class="game-over-overlay">
             ${headingHtml}
             ${hasCount ? '<ul class="go-count"></ul>' : ''}
@@ -49,7 +114,7 @@ export function createGameOverScreen(
     ctx.rankingMusic.startOnGameOver(ctx.root);
   };
 
-  ctx.rankingMusic.stop();
+  ctx.rankingMusic.stop(); // defensive reset
 
   const muted = isMuted();
   const playOptionalSfx = (src: string): void => {
@@ -59,45 +124,14 @@ export function createGameOverScreen(
   const score = screen.querySelector('.go-score-value');
   const countList = screen.querySelector('.go-count');
 
-  if (hasCount && countList && score) {
-    const lineEls = countLines.map(({ label, rule, value }) => {
-      const li = document.createElement('li');
-      li.className = 'go-count-line';
-      li.innerHTML = `<span class="go-count-label">${label}</span><span class="go-count-rule">${rule}</span><span class="go-count-value">${value}</span>`;
-      countList.appendChild(li);
-      return li;
-    });
-
-    if (reduceMotion) {
-      lineEls.forEach((li) => li.classList.add('show'));
-      score.textContent = String(breakdown.total);
-      announce(`Score: ${breakdown.total}`);
+  if (score) {
+    if (hasCount && countList) {
+      const lineEls = renderCountLines(countList, countLines);
+      if (reduceMotion) showReducedMotionCount(lineEls, score, breakdown.total);
+      else animateCountSequence(ctx, score, lineEls, breakdown.total, playOptionalSfx);
     } else {
-      score.textContent = '0';
-      lineEls.forEach((li, i) => setTimeout(() => {
-        li.classList.add('show');
-        playOptionalSfx(COUNT_TICK_SFX);
-      }, 300 + i * 250));
-
-      const rollStartMs = 300 + lineEls.length * 250;
-      const ROLL_MS = 500;
-
-      setTimeout(() => {
-        playOptionalSfx(COUNT_CHIME_SFX);
-        const rollTimer = setInterval(() => {
-          if (!ctx.root.contains(score)) { clearInterval(rollTimer); return; }
-          const next = Math.min(breakdown.total, Number(score.textContent) + Math.ceil(breakdown.total / (ROLL_MS / 40)));
-          score.textContent = String(next);
-          if (next >= breakdown.total) {
-            clearInterval(rollTimer);
-            announce(`Score: ${breakdown.total}`); // settled total, once the roll lands
-          }
-        }, 40);
-      }, rollStartMs);
+      showStaticScore(score, breakdown.total);
     }
-  } else if (score) {
-    score.textContent = String(breakdown.total);
-    announce(`Score: ${breakdown.total}`);
   }
 
   if (variant === 'death' && !muted) {

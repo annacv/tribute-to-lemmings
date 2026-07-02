@@ -40,6 +40,107 @@ function appendRankingRow(
   parent.appendChild(row);
 }
 
+function isRankingMounted(root: HTMLElement): boolean {
+  return !!root.querySelector('.ranking-list');
+}
+
+function renderRankingError(
+  list: Element,
+  onRetry: () => void,
+): void {
+  list.innerHTML = `
+      <p class="ranking-error">&gt; could not load rankings.</p>
+      <a class="ranking-retry" href="#">try again</a>
+    `;
+  list.querySelector('.ranking-retry')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    list.innerHTML = '<p class="ranking-loading">&gt; loading...</p>';
+    onRetry();
+  });
+}
+
+type RowLike = { id: string; name: string; score: number };
+
+function renderTopScores(
+  list: Element,
+  scores: readonly RowLike[],
+  isPlayerRow: (s: RowLike) => boolean,
+): { playerRank: number | null; playerInTop10: boolean } {
+  const playerInTop10 = scores.some(isPlayerRow);
+
+  list.replaceChildren();
+  const table = document.createElement('ol');
+  table.className = 'ranking-table';
+  list.appendChild(table);
+
+  let displayRank = 1;
+  let playerRank: number | null = null;
+
+  scores.forEach((s, i) => {
+    if (i > 0 && s.score < scores[i - 1].score) displayRank = i + 1;
+    const isCurrent = isPlayerRow(s);
+    if (isCurrent) playerRank = displayRank;
+    appendRankingRow(table, displayRank, s.name, s.score, isCurrent);
+  });
+
+  return { playerRank, playerInTop10 };
+}
+
+function appendNotTop10Row(
+  list: Element,
+  rank: number,
+  playerName: string,
+  score: number,
+): void {
+  const divider = document.createElement('hr');
+  divider.className = 'ranking-divider';
+  list.appendChild(divider);
+  if (rank > 10) {
+    const note = document.createElement('p');
+    note.className = 'ranking-not-top10';
+    note.textContent = '> you are still not in the top 10';
+    list.appendChild(note);
+  }
+  appendRankingRow(list, rank, playerName, score, true);
+}
+
+/** The leaderboard keeps one record per name (the personal best), so a name
+    match means this row IS the player's entry — highlight it in place and
+    never append a duplicate row with this run's lower score below */
+async function renderRankingSuccess(
+  ctx: AppContext,
+  list: Element,
+  scores: readonly RowLike[],
+  submission: SubmissionResult,
+  currentScore: number,
+): Promise<void> {
+  if (scores.length === 0) {
+    list.innerHTML = '<p class="ranking-empty">&gt; no scores yet — be the first!</p>';
+    return;
+  }
+  const playerName = ctx.getPlayerName();
+  const { docId: submittedDocId, bestScore } = submission;
+  const isPlayerRow = (s: RowLike): boolean =>
+    (submittedDocId !== null && s.id === submittedDocId)
+    || (playerName !== '' && s.name === playerName);
+
+  const { playerInTop10, playerRank: top10Rank } = renderTopScores(list, scores, isPlayerRow);
+  let playerRank = top10Rank;
+
+  if (!playerInTop10) {
+    const effectiveScore = bestScore ?? currentScore;
+    const rank = await getPlayerRank(effectiveScore).catch(() => null);
+    if (!isRankingMounted(ctx.root)) return;
+    if (rank !== null) {
+      playerRank = rank;
+      appendNotTop10Row(list, rank, playerName, effectiveScore);
+    }
+  }
+  /* Announce the settled rank once, after the list renders (both the in-top-10
+     row and the appended below-top-10 row are covered) */
+  if (playerRank !== null) announce(`Rank ${playerRank}`);
+}
+
 export function createRankingScreen(
   ctx: AppContext,
   routes: ScreenRoutes,
@@ -124,82 +225,18 @@ async function loadRanking(
       SUBMISSION_TIMEOUT_MS,
       'leaderboard fetch timeout',
     );
+    if (!isRankingMounted(ctx.root)) return; // navigated away
 
-    if (!ctx.root.querySelector('.ranking-list')) return; // navigated away
+    const submissionData = await submissionResult;
+    if (!isRankingMounted(ctx.root)) return;
+    if (submissionData.error) showSaveErrorBanner();
 
-    const { error: submissionError, docId: submittedDocId, bestScore } = await submissionResult;
-
-    if (!ctx.root.querySelector('.ranking-list')) return;
-    if (submissionError) showSaveErrorBanner();
-
-    if (scores.length === 0) {
-      list.innerHTML = '<p class="ranking-empty">&gt; no scores yet — be the first!</p>';
-      return;
-    }
-
-    /* The leaderboard keeps one record per name (the personal best), so a name
-       match means this row IS the player's entry — highlight it in place and
-       never append a duplicate row with this run's lower score below */
-    const playerName = ctx.getPlayerName();
-    const isPlayerRow = (s: { id: string; name: string }): boolean =>
-      (submittedDocId !== null && s.id === submittedDocId)
-      || (playerName !== '' && s.name === playerName);
-
-    const playerInTop10 = scores.some(isPlayerRow);
-
-    list.replaceChildren();
-    const table = document.createElement('ol');
-    table.className = 'ranking-table';
-    list.appendChild(table);
-
-    let displayRank = 1;
-    let playerRank: number | null = null;
-
-    scores.forEach((s, i) => {
-      if (i > 0 && s.score < scores[i - 1].score) displayRank = i + 1;
-      const isCurrent = isPlayerRow(s);
-      if (isCurrent) playerRank = displayRank;
-      appendRankingRow(table, displayRank, s.name, s.score, isCurrent);
-    });
-
-    if (!playerInTop10) {
-      const effectiveScore = bestScore ?? currentScore;
-      const rank = await getPlayerRank(effectiveScore).catch(() => null);
-
-      if (!ctx.root.querySelector('.ranking-list')) return;
-
-      if (rank !== null) {
-        playerRank = rank;
-        const divider = document.createElement('hr');
-        divider.className = 'ranking-divider';
-        list.appendChild(divider);
-        if (rank > 10) {
-          const note = document.createElement('p');
-          note.className = 'ranking-not-top10';
-          note.textContent = '> you are still not in the top 10';
-          list.appendChild(note);
-        }
-        appendRankingRow(list, rank, playerName, effectiveScore, true);
-      }
-    }
-    /* Announce the settled rank once, after the list renders (both the in-top-10
-       row and the appended below-top-10 row are covered) */
-    if (playerRank !== null) announce(`Rank ${playerRank}`);
+    await renderRankingSuccess(ctx, list, scores, submissionData, currentScore);
   } catch {
-    if (!ctx.root.querySelector('.ranking-list')) return;
+    if (!isRankingMounted(ctx.root)) return;
     const { error: submissionError } = await submissionResult;
-    if (!ctx.root.querySelector('.ranking-list')) return;
+    if (!isRankingMounted(ctx.root)) return;
     if (submissionError) showSaveErrorBanner();
-
-    list.innerHTML = `
-        <p class="ranking-error">&gt; could not load rankings.</p>
-        <a class="ranking-retry" href="#">try again</a>
-      `;
-
-    list.querySelector('.ranking-retry')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      list.innerHTML = '<p class="ranking-loading">&gt; loading...</p>';
-      loadRanking(ctx, currentScore, submission);
-    });
+    renderRankingError(list, () => loadRanking(ctx, currentScore, submission));
   }
 }
