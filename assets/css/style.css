@@ -650,7 +650,7 @@ canvas {
 
 .touch-left,
 .touch-right,
-.touch-action {
+.touch-space {
   height: var(--touch-control-size);
   display: flex;
   justify-content: center;
@@ -663,10 +663,11 @@ canvas {
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: background-color .1s ease, color .1s ease;
 }
 
-.touch-action {
+.touch-space {
   font-family: var(--font-pixel);
   text-align: center;
 }
@@ -683,8 +684,7 @@ canvas {
   height: 1.25rem;
 }
 
-/* Touch action button: static SPACE label. */
-.touch-action {
+.touch-space {
   flex: 1;
   padding: 0 .75rem;
   align-items: center;
@@ -696,10 +696,10 @@ canvas {
 
 .touch-left:hover,
 .touch-right:hover,
-.touch-action:hover,
+.touch-space:hover,
 .touch-left:focus,
 .touch-right:focus,
-.touch-action:focus {
+.touch-space:focus {
   outline: none;
   background-color: var(--neutral-100);
   color: var(--brand);
@@ -707,19 +707,19 @@ canvas {
 
 .touch-left:focus-visible,
 .touch-right:focus-visible,
-.touch-action:focus-visible {
+.touch-space:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
 .touch-left:active,
 .touch-right:active,
-.touch-action:active:not(:disabled) {
+.touch-space:active:not(:disabled) {
   background-color: var(--brand);
   color: var(--neutral-100);
 }
 
-.touch-action:disabled {
+.touch-space:disabled {
   opacity: .35;
   cursor: default;
 }
