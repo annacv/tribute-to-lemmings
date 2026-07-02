@@ -30,7 +30,7 @@ export type PlayScreen = {
 export function buildPlayScreen(host: HTMLElement, config: PlayScreenConfig): PlayScreen {
   const { canvasClass, canvasAriaLabel, secondsStart, withAction } = config;
   const actionButton = withAction
-    ? '<button class="touch-action" aria-label="Action">SPACE</button>'
+    ? '<button class="touch-space" aria-label="Action">SPACE</button>'
     : '';
   host.innerHTML = `
     <section class="section-container play">
@@ -85,12 +85,16 @@ export function buildPlayScreen(host: HTMLElement, config: PlayScreenConfig): Pl
         if (!isBlocked?.()) getMover()?.setDirection(direction);
       };
 
-      const right = screen.querySelector('.touch-right') as HTMLElement;
-      right.addEventListener('touchstart', () => applyDirection(1));
-      right.addEventListener('click', () => applyDirection(1));
-      const left = screen.querySelector('.touch-left') as HTMLElement;
-      left.addEventListener('touchstart', () => applyDirection(-1));
-      left.addEventListener('click', () => applyDirection(-1));
+      const bindDirection = (el: HTMLElement, direction: number): void => {
+        el.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          applyDirection(direction);
+        }, { passive: false });
+        el.addEventListener('click', () => applyDirection(direction));
+      };
+
+      bindDirection(screen.querySelector('.touch-right') as HTMLElement, 1);
+      bindDirection(screen.querySelector('.touch-left') as HTMLElement, -1);
       /* Dies with the run (signal aborts at halt), so listeners don't stack up
          across play-again cycles */
       document.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -99,8 +103,13 @@ export function buildPlayScreen(host: HTMLElement, config: PlayScreenConfig): Pl
       }, { signal });
     },
     wireAction(onAction, signal, isBlocked) {
-      const actionBtn = screen.querySelector('.touch-action') as HTMLButtonElement | null;
-      actionBtn?.addEventListener('click', () => { if (!isBlocked?.()) onAction(); });
+      const actionBtn = screen.querySelector('.touch-space') as HTMLButtonElement | null;
+      const fireAction = (): void => { if (!isBlocked?.()) onAction(); };
+      actionBtn?.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        fireAction();
+      }, { passive: false });
+      actionBtn?.addEventListener('click', fireAction);
       /* One verb: Space (or the action button) fires once; auto-repeat is ignored
          and the gate keeps a focused control / open modal from triggering it */
       document.addEventListener('keydown', (event: KeyboardEvent) => {
