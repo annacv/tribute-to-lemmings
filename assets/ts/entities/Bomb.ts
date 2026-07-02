@@ -18,8 +18,4 @@ export class Bomb {
     this.isExploding = false;
     this.explosionStepsLeft = 0;
   }
-
-  move(): void {
-    this.dy = this.dy + this.speed;
-  }
 }

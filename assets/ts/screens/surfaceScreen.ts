@@ -22,7 +22,7 @@ export function createGameScreen(ctx: AppContext, routes: ScreenRoutes): void {
   );
 
   game.gameSong.muted = isMuted();
-  wireMute((muted) => { game.gameSong.muted = muted; });
+  wireMute((muted) => { game.gameSong.muted = muted; game.muted = muted; });
   wireMovement(() => game.player, game.runSignal);
 
   game.startSong();

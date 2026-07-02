@@ -148,7 +148,7 @@ describe('SurfaceGame', () => {
     const bombHit = game.sfx.get('bombHit')!;
     const playSpy = vi.fn().mockResolvedValue(undefined);
     bombHit.play = playSpy;
-    game.gameSong.muted = true;
+    game.muted = true;
 
     placeHitBomb(game);
 

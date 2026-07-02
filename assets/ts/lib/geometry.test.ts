@@ -1,8 +1,22 @@
-import { describe, it, expect } from 'vitest';
-import { bombHitsPlayer } from './geometry';
+import { describe, it, expect, vi } from 'vitest';
+import { bombHitsPlayer, getCanvasSize } from './geometry';
 import { defaultPlayerHitbox } from '../test-helpers';
 
 const { x: PLAYER_X, y: PLAYER_Y, w: PLAYER_W, h: PLAYER_H } = defaultPlayerHitbox();
+
+describe('getCanvasSize', () => {
+  it('subtracts header and footer from the viewport height cap', () => {
+    document.body.innerHTML = '<header class="site-header"></header><footer class="site-footer"></footer>';
+    const header = document.querySelector('.site-header')!;
+    const footer = document.querySelector('.site-footer')!;
+    vi.spyOn(header, 'getBoundingClientRect').mockReturnValue({ height: 60 } as DOMRect);
+    vi.spyOn(footer, 'getBoundingClientRect').mockReturnValue({ height: 40 } as DOMRect);
+    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(800);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(500);
+
+    expect(getCanvasSize()).toBe(400);
+  });
+});
 
 describe('bombHitsPlayer', () => {
   it.each([

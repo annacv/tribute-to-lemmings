@@ -6,84 +6,29 @@ import { restartAnimation } from './fx';
    reuse it as-is. Lookups are memoized — the HUD is static for the lifetime of
    a game screen, so each element hits the DOM once instead of every frame. */
 export class Hud {
-  private secondsValue?: HTMLElement | null;
-  private hudScore?: HTMLElement | null;
-  private levelValue?: HTMLElement | null;
-  private levelItem?: HTMLElement | null;
-  private levelUpBanner?: HTMLElement | null;
-  private livesIcons?: HTMLElement | null;
-  private livesValue?: HTMLElement | null;
-  private livesItem?: HTMLElement | null;
-  private abyssBombs?: HTMLElement | null;
-  private abyssStalSmall?: HTMLElement | null;
-  private abyssStalMedium?: HTMLElement | null;
-  private abyssStalLarge?: HTMLElement | null;
+  private readonly cache = new Map<string, HTMLElement | null>();
   private lastScore: number | null = null;
 
-  private getSecondsValue(): HTMLElement | null {
-    return this.secondsValue ??= document.querySelector('.seconds-value');
+  private query(selector: string): HTMLElement | null {
+    if (!this.cache.has(selector)) this.cache.set(selector, document.querySelector(selector));
+    return this.cache.get(selector) ?? null;
   }
 
-  private getHudScore(): HTMLElement | null {
-    return this.hudScore ??= document.querySelector('.hud-score');
-  }
-
-  private getLevelValue(): HTMLElement | null {
-    return this.levelValue ??= document.querySelector('.level-value');
-  }
-
-  private getLevelItem(): HTMLElement | null {
-    return this.levelItem ??= document.querySelector('.level-item');
-  }
-
-  private getLevelUpBanner(): HTMLElement | null {
-    return this.levelUpBanner ??= document.querySelector('.level-up-banner');
-  }
-
-  private getLivesIcons(): HTMLElement | null {
-    return this.livesIcons ??= document.querySelector('.lives-icons');
-  }
-
-  private getLivesValue(): HTMLElement | null {
-    return this.livesValue ??= document.querySelector('.lives-value');
-  }
-
-  private getLivesItem(): HTMLElement | null {
-    return this.livesItem ??= document.querySelector('.lives-item');
-  }
-
-  private getAbyssBombs(): HTMLElement | null {
-    return this.abyssBombs ??= document.querySelector('.abyss-bombs');
-  }
-
-  private getAbyssStal(size: StalactiteSize): HTMLElement | null {
-    switch (size) {
-      case 'small':
-        return this.abyssStalSmall ??= document.querySelector('.abyss-stal[data-size="small"]');
-      case 'medium':
-        return this.abyssStalMedium ??= document.querySelector('.abyss-stal[data-size="medium"]');
-      case 'large':
-        return this.abyssStalLarge ??= document.querySelector('.abyss-stal[data-size="large"]');
-    }
-  }
-
-  /** Writes the countdown only when it changes, returning whether
-      the displayed value moved so callers can gate their own per-second updates. */
   setScore(score: number): boolean {
     if (score === this.lastScore) return false;
     this.lastScore = score;
-    const el = this.getSecondsValue();
+    const el = this.query('.seconds-value');
     if (el) el.textContent = String(score);
     return true;
   }
 
   setTimeWarning(on: boolean): void {
-    this.getSecondsValue()?.classList.toggle('time-warning', on);
+    this.query('.seconds-value')?.classList.toggle('time-warning', on);
   }
 
   /** Floats a self-removing "+N" pop over the score slot at a cycle breakout. */
   popBank(points: number): void {
-    const slot = this.getHudScore();
+    const slot = this.query('.hud-score');
     if (!slot) return;
     const pop = document.createElement('span');
     pop.className = 'bank-pop';
@@ -93,30 +38,29 @@ export class Hud {
   }
 
   blinkHudScore(): void {
-    restartAnimation(this.getHudScore(), 'blink');
+    restartAnimation(this.query('.hud-score'), 'blink');
   }
 
   setLevel(label: string): void {
-    const level = this.getLevelValue();
+    const level = this.query('.level-value');
     if (level) level.textContent = label;
-    restartAnimation(this.getLevelItem(), 'blink');
+    restartAnimation(this.query('.level-item'), 'blink');
   }
 
-  /** Announces a level via the center banner, replaying its show animation. */
   showLevelBanner(label: string): void {
-    const banner = this.getLevelUpBanner();
+    const banner = this.query('.level-up-banner');
     if (!banner) return;
     banner.textContent = label;
     restartAnimation(banner, 'show');
   }
 
   setLivesValue(lives: number): void {
-    const el = this.getLivesValue();
+    const el = this.query('.lives-value');
     if (el) el.textContent = String(lives);
   }
 
   initLivesIcons(lives: number, iconSrc: string): void {
-    const container = this.getLivesIcons();
+    const container = this.query('.lives-icons');
     if (!container) return;
     container.innerHTML = '';
 
@@ -131,7 +75,7 @@ export class Hud {
 
   displayLives(lives: number): void {
     this.setLivesValue(lives);
-    const container = this.getLivesIcons();
+    const container = this.query('.lives-icons');
     if (!container) return;
 
     const activeIcons = container.querySelectorAll('.life-icon:not(.life-losing)');
@@ -143,20 +87,22 @@ export class Hud {
       icon.addEventListener('animationend', () => icon.remove(), { once: true });
     }
 
-    if (excess > 0) restartAnimation(this.getLivesItem(), 'blink');
+    if (excess > 0) restartAnimation(this.query('.lives-item'), 'blink');
   }
 
   setAbyssBombs(carried: number, cap: number): void {
-    const el = this.getAbyssBombs();
+    const el = this.query('.abyss-bombs');
     if (el) el.textContent = `${carried}/${cap}`;
   }
 
   updateAbyssStalactites(breaks: StalactiteBreaks, availableSizes: readonly StalactiteSize[]): void {
     for (const size of ['small', 'medium', 'large'] as const) {
-      const item = this.getAbyssStal(size);
+      const item = this.query(`.abyss-stal[data-size="${size}"]`);
       if (!item) continue;
+
       const available = availableSizes.includes(size);
       item.toggleAttribute('hidden', !available);
+
       if (available) {
         const count = item.querySelector('.abyss-hint-count');
         if (count) count.textContent = String(breaks[size]);

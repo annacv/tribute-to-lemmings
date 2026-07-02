@@ -179,7 +179,7 @@ export function createTransitionScreen(
     drawScene(lemmingY, scrollY, veilAlpha, hairLevel, ceilingDrop);
     /* The stinger fades in at its reveal point: at rest for surface→tunnel (no
        mid-scroll cliffhanger), early for the Abyss handoff (before the reveal) */
-    if (scrollT >= messageScrollT) screen.querySelector('.transition-overlay')?.classList.add('show');
+    if (scrollT >= messageScrollT) overlay.classList.add('show');
     if (elapsed < animEnd) requestAnimationFrame((n) => animate(startTime, n));
   }
 

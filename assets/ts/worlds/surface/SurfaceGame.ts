@@ -50,6 +50,7 @@ export class SurfaceGame implements SurfaceView {
   erosionCounter = 0;
   gameSong = new Audio(GAME_SONG);
   tentonSfx = new Audio(TENTON_SFX);
+  muted: boolean = audio.isMuted();
   sfx: SoundEffectBank;
   /* Neutral halt is outcome-neutral; this records which outcome occurred so
      teardown routes to onGameOver (death) or leaves onComplete to the sting. */
@@ -73,7 +74,7 @@ export class SurfaceGame implements SurfaceView {
       levelUp: YIPPEE_SFX,
       electric: ELECTRIC_SFX,
       bang: BANG_SFX,
-    }, () => this.gameSong.muted);
+    }, () => this.muted);
     this.renderer = new SurfaceRenderer(canvas);
     this.host = new RunHost({
       step: () => this.step(),
@@ -178,7 +179,7 @@ export class SurfaceGame implements SurfaceView {
 
     for (let i = this.bombs.length - 1; i >= 0; i--) {
       const bomb = this.bombs[i];
-      bomb.move();
+      bomb.dy += bomb.speed;
 
       if (!bomb.isExploding) {
         if (bomb.dy > this.canvas.height) {

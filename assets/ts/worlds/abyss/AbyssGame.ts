@@ -382,7 +382,7 @@ export class AbyssGame implements AbyssView {
     const preLives = this.player?.lives;
     for (let i = this.fallingBombs.length - 1; i >= 0; i--) {
       const bomb = this.fallingBombs[i];
-      bomb.move();
+      bomb.dy += bomb.speed;
       if (bomb.dy + bomb.dHeight >= floorY) {
         this.fallingBombs.splice(i, 1);
         this.floorBombs.push(bomb.dx);

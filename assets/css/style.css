@@ -1,7 +1,5 @@
 /* ---- FONTS ---- */
 
-/* Self-hosted Press Start 2P (SIL OFL), same subsets/ranges Google Fonts serves:
-   latin-ext only downloads when a leaderboard name actually needs it */
 @font-face {
   font-family: 'Press Start 2P';
   font-style: normal;
@@ -11,6 +9,7 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* latin-ext only downloads when a leaderboard name actually needs it */
 @font-face {
   font-family: 'Press Start 2P';
   font-style: normal;
@@ -67,8 +66,7 @@
   --tracking-pixel-wide: 0.08em;
   --tracking-pixel-extra-wide: 0.1em;
 
-  /* Leading by role. 
-     Line-height:1 stays local (glyph centering). */
+  /* Leading by role. */
   --leading-tight: 1.4; /* titles */
   --leading-snug: 1.2;  /* compact labels */
   --leading-body: 1.8;  /* multi-line copy */
@@ -303,8 +301,8 @@ canvas {
 }
 
 .game-canvas,
-.game-over-canvas,
-.win-canvas {
+.game-over-bg,
+.win-bg {
   background-position: 50% 50%;
   background-size: cover;
 }
@@ -324,12 +322,18 @@ canvas {
   animation: shake-light 0.2s ease-in-out;
 }
 
-.game-over-canvas {
+.game-over-bg {
   background-image: url("../images/backgrounds/background-gameover.svg");
 }
 
-.win-canvas {
+.win-bg {
   background-image: url("../images/backgrounds/background-win.svg");
+}
+
+.game-over-bg,
+.win-bg {
+  width: var(--stage-size);
+  height: var(--stage-size);
 }
 
 .ranking-canvas {
@@ -401,11 +405,11 @@ canvas {
   .game-canvas,
   .tunnel-game-canvas,
   .abyss-game-canvas,
-  .game-over-canvas,
+  .game-over-bg,
   .ranking-canvas,
   .transition-canvas,
   .the-end-canvas,
-  .win-canvas {
+  .win-bg {
     width: 100%;
     height: auto;
   }
@@ -418,8 +422,8 @@ canvas {
     background: var(--neutral-100);
   }
 
-  .game-over-canvas,
-  .win-canvas,
+  .game-over-bg,
+  .win-bg,
   .ranking-canvas,
   .the-end-canvas,
   .transition-canvas {
