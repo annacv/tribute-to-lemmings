@@ -32,7 +32,7 @@ export function createStartScreen(ctx: AppContext, routes: ScreenRoutes): void {
   ctx.buildDom(`
       <section class="splash-hero">
         <canvas class="splash-mascot" role="img" aria-label="Lemming mascot"></canvas>
-        <h1 class="splash-title">Tribute to<br>Lemmings</h1>
+        <h1 class="splash-title">Tribute to Lemmings</h1>
         <p class="splash-tagline">&gt; skip and escape. stay alive!</p>
         <form class="splash-form">
           <div class="splash-name-wrap">
