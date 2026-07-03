@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import {
   AbyssGame, ABYSS_LEVEL_CONFIG, ABYSS_TIME_BUDGET_S, THROW_FLIGHT_STEPS,
+  EXIT_DOOR_SCREEN_FRAC, STALACTITE_EXIT_CLEARANCE_FRAC,
 } from './AbyssGame';
 import { Stalactite, STALACTITE_COST } from '../../entities/Stalactite';
 import { Bomb } from '../../entities/Bomb';
@@ -124,6 +125,21 @@ describe('AbyssGame — bomb spawning', () => {
     game.step();
     expect(game.player!.lives).toBe(before - 1);
     expect(play).toHaveBeenCalledWith('bombHit');
+  });
+});
+
+describe('AbyssGame — stalactite spawning', () => {
+  it('does not seed stalactites in the exit-door clearance band', () => {
+    const game = invincible(makeAbyssGame(makeCanvas()));
+    game.cameraX = 4000;
+    game.playerWorldX = 4234;
+    game.nextStalactiteWorldX = 4000;
+    game['spawnStalactitesAhead']();
+    const doorWorldX = game.cameraX + game.canvas.width * EXIT_DOOR_SCREEN_FRAC;
+    const minGap = game.canvas.width * STALACTITE_EXIT_CLEARANCE_FRAC;
+    for (const stalactite of game.stalactites) {
+      expect(doorWorldX - stalactite.worldX).toBeGreaterThanOrEqual(minGap - 1e-9);
+    }
   });
 });
 
