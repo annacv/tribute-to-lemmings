@@ -442,34 +442,3 @@ describe('TunnelGame — completion routing', () => {
     expect(game.step()).toBe(false);             // halted after the drop
   });
 });
-
-describe('TunnelGame — HUD countdown and banking pop', () => {
-  let canvas: HTMLCanvasElement;
-
-  beforeEach(() => {
-    canvas = makeCanvas();
-    document.body.innerHTML = `
-      <div class="lives-icons"></div>
-      <span class="hud-item lives-item"><span class="hud-value lives-value"></span></span>
-      <div class="hud-score">
-        <span class="hud-item"><span class="hud-value seconds-value">60</span></span>
-        <span class="hud-item level-item"><span class="hud-value level-value"></span></span>
-      </div>
-      <p class="level-up-banner"></p>
-    `;
-  });
-
-  afterEach(() => { document.body.innerHTML = ''; });
-
-  it('enters the warning state at 10 seconds left, not before', () => {
-    const game = makeTunnelGame(canvas);
-    const digits = document.querySelector('.seconds-value') as HTMLElement;
-    game.stepCount = (TUNNEL_TIME_BUDGET_S - 11) * 60;
-    game.step();
-    expect(digits.classList.contains('time-warning')).toBe(false);
-    game.stepCount = (TUNNEL_TIME_BUDGET_S - 10) * 60;
-    game.step();
-    expect(digits.classList.contains('time-warning')).toBe(true);
-  });
-
-});

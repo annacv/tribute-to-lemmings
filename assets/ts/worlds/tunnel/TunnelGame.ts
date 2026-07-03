@@ -325,7 +325,8 @@ export class TunnelGame implements TunnelView {
     this.bankedSeconds += share;
     this.cyclesCleared++;
     this.hud.setScore(this.secondsLeft());
-    this.hud.popBank(share + LEVEL_POINTS);
+    this.hud.scoreGain(LEVEL_POINTS);
+    this.hud.showLevelUpEffect(`Level ${this.cyclesCleared}`);
     restartAnimation(this.canvas, 'shake-light');
 
     /* Every cycle — including the last — opens the floor pit; the final breach

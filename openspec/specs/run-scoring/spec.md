@@ -2,10 +2,10 @@
 
 ## Purpose
 
-The cumulative run-scoring model spanning the surface and tunnel worlds: a breakdown
-object threaded through every screen handoff, the surface/tunnel time and levels
-components, underground per-cycle banking, the Game Over tally presentation, and the
-leaderboard display/fetch behavior.
+The cumulative run-scoring model spanning the surface, tunnel, and abyss worlds: a breakdown
+object threaded through every screen handoff, the surface/tunnel/abyss time and levels
+components, underground per-cycle banking, gameplay score-gain HUD feedback on every play
+screen, the Game Over tally presentation, and the leaderboard display/fetch behavior.
 
 ## Requirements
 
@@ -113,8 +113,9 @@ be playtest-tuned so players normally complete cycles with seconds left to bank 
 design goal is ending with some score to sum). The countdown SHALL survive deaths: a
 crush respawn continues from the remaining time at the moment of death (it never resets
 or refills). At each cycle breakout, that cycle's share of remaining seconds plus the +5
-cycle award SHALL be banked into the breakdown immediately, with a "+N" HUD pop at the
-banking moment.
+cycle award SHALL be banked into the breakdown immediately. The countdown time share SHALL
+be banked silently — it SHALL NOT appear in the gameplay "+N" pop (see "Score-gain HUD
+feedback on every play screen"); only the +5 cycle award is surfaced during play.
 
 #### Scenario: Countdown floors at zero
 - **WHEN** the countdown reaches 0 with the run still active
@@ -124,7 +125,48 @@ banking moment.
 #### Scenario: Banking at breakout
 - **WHEN** a cycle completes
 - **THEN** the cycle's time share and +5 award SHALL be added to the breakdown at that
-  moment and a "+N" pop SHALL render near the HUD score slot
+  moment; the gameplay "+N" pop SHALL show only the +5 cycle award
+
+### Requirement: Score-gain HUD feedback on every play screen
+Every play screen (surface, tunnel, abyss) SHALL show immediate score-gain feedback when
+the player earns breakdown points during gameplay. The shared `Hud` controller
+(`assets/ts/lib/Hud.ts`) SHALL float a self-removing "+N" pop (`.bank-pop`) over the score
+slot and briefly blink the score slot. The value N SHALL be the points earned in that
+moment only — never a cumulative total and never components reserved for the end-of-run
+tally (e.g. banked tunnel countdown seconds, survival seconds ticking in the HUD).
+
+Triggers by world:
+- **Surface:** level advance → +5 (`LEVEL_POINTS`)
+- **Tunnel:** cycle breach → +5 (`LEVEL_POINTS`); banked countdown seconds are added to
+  the breakdown silently
+- **Abyss:** level advance → +5; stalactite fully destroyed → per-size bonus (small 5,
+  medium 10, large 15)
+
+The Game Over / win tally screens SHALL present the full breakdown, including components
+not shown during play (tunnel time banked per cycle, survival seconds, etc.).
+
+#### Scenario: Surface level-up shows the cycle award
+- **WHEN** the surface level advances
+- **THEN** a "+5" pop SHALL appear over the HUD score slot and the score slot SHALL blink
+
+#### Scenario: Tunnel breach shows only the cycle award
+- **WHEN** a tunnel cycle completes
+- **THEN** a "+5" pop SHALL appear over the HUD score slot; the pop SHALL NOT include the
+  banked countdown seconds for that cycle
+
+#### Scenario: Abyss level-up shows the level award
+- **WHEN** the Abyss advances to a new level by time
+- **THEN** a "+5" pop SHALL appear over the HUD score slot
+
+#### Scenario: Abyss stalactite smash shows the size bonus
+- **WHEN** a stalactite is fully destroyed
+- **THEN** a "+N" pop SHALL appear where N equals that size's stalactite bonus (5, 10, or
+  15)
+
+#### Scenario: End-of-run tally includes silent components
+- **WHEN** a run that banked tunnel countdown seconds ends
+- **THEN** the Game Over tally SHALL list the tunnel time component even though those
+  seconds were not shown in gameplay "+N" pops
 
 #### Scenario: Hidden tab freezes the countdown
 - **WHEN** the tab is hidden during a tunnel run

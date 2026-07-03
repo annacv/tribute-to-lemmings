@@ -112,3 +112,15 @@ export function makeCanvas(width = TEST_CANVAS_SIZE, height = TEST_CANVAS_SIZE) 
   canvas.getContext = vi.fn().mockReturnValue(makeCtx(canvas)) as typeof canvas.getContext;
   return canvas;
 }
+
+export function mountPlayHudDom(secondsStart = 0): void {
+  document.body.innerHTML = `
+    <div class="lives-icons"></div>
+    <span class="hud-item lives-item"><span class="hud-value lives-value"></span></span>
+    <div class="hud-score">
+      <span class="hud-item"><span class="hud-value seconds-value">${secondsStart}</span></span>
+      <span class="hud-item level-item"><span class="hud-value level-value"></span></span>
+    </div>
+    <p class="level-up-banner"></p>
+  `;
+}

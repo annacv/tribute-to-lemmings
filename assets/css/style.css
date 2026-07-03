@@ -584,7 +584,8 @@ canvas {
   font-variant-numeric: tabular-nums;
 }
 
-.hud-item.blink {
+.hud-item.blink,
+.hud-score.blink {
   animation: hud-blink 0.4s ease-in-out 3;
 }
 
@@ -875,9 +876,7 @@ canvas {
   color: var(--accent);
 }
 
-/* Tunnel HUD: countdown warning (the global reduced-motion clamp collapses
-   the pulse, leaving the color-only state) and the per-bank "+N" pop */
-.hud-score {
+.level-item {
   position: relative;
 }
 
@@ -893,17 +892,24 @@ canvas {
 .bank-pop {
   position: absolute;
   right: 0;
-  top: -1.2em;
+  top: 100%;
+  margin-top: calc(0.2em + 4px);
   color: var(--accent);
   font-size: var(--text-2xs);
+  font-weight: 600;
+  white-space: nowrap;
   pointer-events: none;
-  animation: bank-pop .9s ease-out forwards;
+  animation: bank-pop 1.8s ease-out forwards;
 }
 
 @keyframes bank-pop {
-  to {
+  0%, 60% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: translateY(8px);
   }
 }
 

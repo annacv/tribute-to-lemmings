@@ -26,9 +26,9 @@ export class Hud {
     this.query('.seconds-value')?.classList.toggle('time-warning', on);
   }
 
-  /** Floats a self-removing "+N" pop over the score slot at a cycle breakout. */
+  /** Floats a self-removing "+N" pop below the level slot. */
   popBank(points: number): void {
-    const slot = this.query('.hud-score');
+    const slot = this.query('.level-item');
     if (!slot) return;
     const pop = document.createElement('span');
     pop.className = 'bank-pop';
@@ -39,6 +39,12 @@ export class Hud {
 
   blinkHudScore(): void {
     restartAnimation(this.query('.hud-score'), 'blink');
+  }
+
+  /** Floats "+N" and blinks the score slot when points are banked. */
+  scoreGain(points: number): void {
+    this.popBank(points);
+    this.blinkHudScore();
   }
 
   setLevel(label: string): void {
@@ -52,6 +58,11 @@ export class Hud {
     if (!banner) return;
     banner.textContent = label;
     restartAnimation(banner, 'show');
+  }
+
+  showLevelUpEffect(levelLabel: string): void {
+    this.showLevelBanner(levelLabel);
+    restartAnimation(document.querySelector('.game-stage'), 'flash-active');
   }
 
   setLivesValue(lives: number): void {
