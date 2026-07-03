@@ -10,7 +10,7 @@ import { SoundEffectBank } from '../../lib/SoundEffectBank';
 import { bombHitsPlayer, PICKUP_RANGE_FRAC } from '../../lib/geometry';
 import { STEPS_PER_SECOND } from '../../lib/GameLoop';
 import {
-  makeBreakdown, LEVEL_POINTS, LEVEL_THRESHOLDS_S,
+  makeBreakdown, LEVEL_POINTS, LEVEL_THRESHOLDS_S, STALACTITE_POINTS,
   type ScoreBreakdown, type StalactiteSize, type StalactiteBreaks,
 } from '../../lib/score';
 import {
@@ -291,7 +291,7 @@ export class AbyssGame implements AbyssView {
     if (this.paused) return true;
 
     this.stepCount++;
-    this.updateLevelByTime();
+    this.checkLevelUp();
 
     if (this.hud.setScore(this.survivedSeconds())) {
       this.hud.setTimeWarning(ABYSS_TIME_BUDGET_S - this.survivedSeconds() <= 10);
@@ -335,16 +335,19 @@ export class AbyssGame implements AbyssView {
     this.player.dx = this.playerScreenX();
   }
 
-  private updateLevelByTime(): void {
-    const secs = this.survivedSeconds();
-    // Thresholds start at 0 and secs >= 0, so the count is always >= 1 (level >= 0).
-    const level = LEVEL_THRESHOLDS_S.filter((threshold) => secs >= threshold).length - 1;
-    if (level !== this.currentLevel) {
-      this.currentLevel = level;
-      this.hud.setLevel(String(level + 1));
-      this.hud.showLevelBanner(`Level ${level + 1}`);
-      this.sfx.play('levelUp');
+  private checkLevelUp(): void {
+    const nextLevel = this.currentLevel + 1;
+    if (nextLevel < ABYSS_LEVEL_CONFIG.length && this.survivedSeconds() >= LEVEL_THRESHOLDS_S[nextLevel]) {
+      this.currentLevel = nextLevel;
+      this.handleLevelUp();
     }
+  }
+
+  private handleLevelUp(): void {
+    this.hud.setLevel(String(this.currentLevel + 1));
+    this.hud.scoreGain(LEVEL_POINTS);
+    this.hud.showLevelUpEffect(`Level ${this.currentLevel + 1}`);
+    this.sfx.play('levelUp');
   }
 
   private maybeSpawnBomb(): void {
@@ -430,6 +433,7 @@ export class AbyssGame implements AbyssView {
       stalactite.destroyed = true;
       stalactite.shatterStepsLeft = SHATTER_STEPS;
       this.breaks[stalactite.size]++;
+      this.hud.scoreGain(STALACTITE_POINTS[stalactite.size]);
       this.sfx.play('thud');
     }
   }

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The structural and control contract every play screen (surface, tunnel, abyss) guarantees: a viewport-sized square game canvas, a HUD showing lives/seconds/level, a mute control, on-screen left/right movement controls mirrored by the arrow keys, and an optional action control (on-screen button + Space) for worlds that need an action verb. Input listeners are scoped to the world's run so they release when the run ends. Implemented by the shared `buildPlayScreen` scaffold (`assets/ts/lib/playScreen.ts`), which renders the markup, sizes the canvas, and exposes per-world wiring helpers; the mute control is wired via `assets/ts/lib/muteButton.ts`. Each world keeps its own game, audio, info modal, and startup sequencing.
+The structural and control contract every play screen (surface, tunnel, abyss) guarantees: a viewport-sized square game canvas, a HUD showing lives/seconds/level (with score-gain "+N" feedback on breakdown events — see `run-scoring`), a mute control, on-screen left/right movement controls mirrored by the arrow keys, and an optional action control (on-screen button + Space) for worlds that need an action verb. Input listeners are scoped to the world's run so they release when the run ends. Implemented by the shared `buildPlayScreen` scaffold (`assets/ts/lib/playScreen.ts`), which renders the markup, sizes the canvas, and exposes per-world wiring helpers; the mute control is wired via `assets/ts/lib/muteButton.ts`. Each world keeps its own game, audio, info modal, and startup sequencing.
 
 ## Requirements
 

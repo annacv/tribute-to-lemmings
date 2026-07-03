@@ -89,8 +89,9 @@ assets/
       liveRegion.ts              # aria-live results announcer
       firebase.ts  leaderboard.ts
       infoModal.ts  muteButton.ts  debugScreen.ts
-      fx.ts  geometry.ts  images.ts
+      fx.ts  geometry.ts  footingPad.ts  images.ts
   css/  fonts/  images/  sounds/
+openspec/                        # Iteration specs (OpenSpec)
 .github/workflows/               # CI + GitHub Pages deploy
 index.html                       # Shell: header, <main> mount, footer
 public/                          # og-image, manifest, sitemap, robots.txt

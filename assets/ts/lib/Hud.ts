@@ -26,9 +26,9 @@ export class Hud {
     this.query('.seconds-value')?.classList.toggle('time-warning', on);
   }
 
-  /** Floats a self-removing "+N" pop over the score slot at a cycle breakout. */
+  /** Floats a self-removing "+N" pop below the level slot. */
   popBank(points: number): void {
-    const slot = this.query('.hud-score');
+    const slot = this.query('.level-item');
     if (!slot) return;
     const pop = document.createElement('span');
     pop.className = 'bank-pop';
@@ -37,14 +37,28 @@ export class Hud {
     pop.addEventListener('animationend', () => pop.remove(), { once: true });
   }
 
+  private blinkHudText(container: HTMLElement): void {
+    container.querySelectorAll('.hud-label, .hud-value').forEach((el) => {
+      restartAnimation(el, 'blink');
+    });
+  }
+
   blinkHudScore(): void {
-    restartAnimation(this.query('.hud-score'), 'blink');
+    const score = this.query('.hud-score');
+    if (score) this.blinkHudText(score);
+  }
+
+  /** Floats "+N" and blinks the score slot when points are banked. */
+  scoreGain(points: number): void {
+    this.popBank(points);
+    this.blinkHudScore();
   }
 
   setLevel(label: string): void {
     const level = this.query('.level-value');
     if (level) level.textContent = label;
-    restartAnimation(this.query('.level-item'), 'blink');
+    const levelItem = this.query('.level-item');
+    if (levelItem) this.blinkHudText(levelItem);
   }
 
   showLevelBanner(label: string): void {
@@ -52,6 +66,11 @@ export class Hud {
     if (!banner) return;
     banner.textContent = label;
     restartAnimation(banner, 'show');
+  }
+
+  showLevelUpEffect(levelLabel: string): void {
+    this.showLevelBanner(levelLabel);
+    restartAnimation(document.querySelector('.game-stage'), 'flash-active');
   }
 
   setLivesValue(lives: number): void {

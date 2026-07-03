@@ -98,7 +98,7 @@ export class SurfaceGame implements SurfaceView {
     this.player = new Player(this.canvas);
     this.hud.initLivesIcons(this.player.lives, SPRITES.lemming);
     this.hud.setLevel(String(this.currentLevel + 1));
-    this.showLevelUpEffect();
+    this.hud.showLevelUpEffect(`Level ${this.currentLevel + 1}`);
     this.host.start();
   }
 
@@ -151,18 +151,14 @@ export class SurfaceGame implements SurfaceView {
 
   private handleLevelUp(): void {
     this.hud.setLevel(String(this.currentLevel + 1));
-    this.showLevelUpEffect();
+    this.hud.scoreGain(LEVEL_POINTS);
+    this.hud.showLevelUpEffect(`Level ${this.currentLevel + 1}`);
     this.sfx.play('levelUp');
     if (this.currentLevel === SURFACE_LEVEL_CONFIG.length - 1) {
       this.groundErosionActive = true;
       this.sfx.play('electric');
       this.triggerEarthquake();
     }
-  }
-
-  private showLevelUpEffect(): void {
-    this.hud.showLevelBanner(`Level ${this.currentLevel + 1}`);
-    restartAnimation(document.querySelector('.game-stage'), 'flash-active');
   }
 
   private triggerEarthquake(): void {
