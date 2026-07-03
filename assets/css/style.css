@@ -174,7 +174,6 @@ body {
 main {
   width: 100%;
   flex-grow: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -281,6 +280,12 @@ main {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .site-footer {
+    padding: 0.25rem 1.5rem;
+  }
 }
 
 @media (min-width: 768px) {
@@ -411,15 +416,12 @@ canvas {
   .the-end-canvas,
   .win-bg {
     width: 100%;
-    height: auto;
   }
 
-  .section-container.game-over-screen .game-stage,
-  .section-container.to-be-continued-screen .game-stage,
-  .section-container.the-end-screen .game-stage,
-  .section-container.ranking-screen .game-stage {
-    flex: 1;
-    background: var(--neutral-100);
+  .game-canvas,
+  .tunnel-game-canvas,
+  .abyss-game-canvas {
+    height: auto;
   }
 
   .game-over-bg,
@@ -430,11 +432,44 @@ canvas {
     height: 100%;
   }
 
+  .section-container.game-over-screen .game-stage,
+  .section-container.to-be-continued-screen .game-stage,
+  .section-container.the-end-screen .game-stage,
+  .section-container.ranking-screen .game-stage {
+    flex: 1;
+    background: var(--neutral-100);
+  }
+
   /* Square canvas buffer fills the taller mobile box; cover keeps the scene
      undistorted (centred lemming/hole stay put, only the sides crop) */
   .transition-canvas,
   .the-end-canvas {
     object-fit: cover;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .site-header {
+    display: none;
+  }
+
+  .site-container:not(:has(.splash-hero)) .site-footer {
+    display: none;
+  }
+
+  .section-container.play,
+  .section-container.to-be-continued-screen,
+  .section-container.the-end-screen {
+    width: 100%;
+    max-width: 52%;
+    gap: 0;
+  }
+
+  .section-container.ranking-screen .game-stage,
+  .section-container.game-over-screen {
+    width: 100%;
+    max-width: 100%;
+    gap: 0;
   }
 }
 
@@ -731,6 +766,63 @@ canvas {
   word-spacing: var(--word-spacing-pixel);
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  .touch-controls {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .touch-left,
+  .touch-right,
+  .touch-space {
+    position: fixed;
+    pointer-events: auto;
+    margin: 0;
+    flex: none;
+    height: calc(var(--touch-control-size) * 0.8);
+  }
+
+  .touch-left,
+  .touch-right {
+    width: calc(var(--touch-control-size) * 0.8);
+  }
+
+  .touch-left svg,
+  .touch-right svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .touch-left {
+    left: 15%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .touch-right {
+    right: 15%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .touch-space {
+    left: 50%;
+    bottom: 0.25rem;
+    transform: translateX(-50%);
+    width: 180px;
+    min-width: 5.5rem;
+    padding: 0 0.75rem;
+    background: rgba(var(--black-rgb), 0.25);
+  }
+}
+
 @media (min-width: 768px) {
   .touch-controls {
     display: none;
@@ -872,6 +964,17 @@ canvas {
 
 .go-score-value {
   color: var(--brand);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .game-over-overlay {
+    inset: 2rem !important;
+    gap: var(--gap-md);
+  }
+
+  .go-score {
+    margin-bottom: .75rem;
+  }
 }
 
 /* ---- TRANSITION SCREEN ---- */
@@ -1125,6 +1228,7 @@ button:active {
   text-shadow: var(--shadow-glow-brand);
   letter-spacing: var(--tracking-pixel-medium);
   word-spacing: var(--word-spacing-pixel);
+  width: 320px;
 }
 
 .splash-tagline {
@@ -1134,6 +1238,57 @@ button:active {
   text-align: center;
   letter-spacing: var(--tracking-pixel-wide);
   text-shadow: 1px 1px 0 rgba(var(--black-rgb), 0.8);
+}
+
+/* ---- SPLASH NAME INPUT ---- */
+
+.splash-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+.splash-name-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  max-width: 340px;
+}
+
+.splash-name-input {
+  width: 100%;
+  padding: .75rem 1rem;
+  font-family: var(--font-pixel);
+  font-size: var(--text-2xs);
+  color: var(--neutral-0);
+  background: var(--neutral-100);
+  border: var(--border-brand-thick);
+  letter-spacing: .06em;
+  outline: none;
+  caret-color: var(--brand);
+}
+
+.splash-name-input::placeholder {
+  color: var(--neutral-40);
+  opacity: 1;
+}
+
+.splash-name-input:focus {
+  border-color: var(--neutral-0);
+}
+
+.splash-name-notice {
+  font-family: var(--font-pixel);
+  font-size: var(--text-4xs);
+  color: var(--neutral-0);
+  text-align: center;
+  letter-spacing: var(--tracking-pixel);
+  line-height: var(--leading-body);
+  text-transform: uppercase;
 }
 
 @media (min-width: 375px) {
@@ -1148,6 +1303,36 @@ button:active {
 
   .splash-name-wrap {
     margin: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .splash-name-input {
+    font-size: var(--text-md);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .splash-hero,
+  .splash-form {
+    gap: 1rem;
+  }
+
+  .splash-hero {
+    padding: 1rem;
+  }
+
+  .splash-mascot {
+    width: 72px;
+    height: 72px;
+  }
+
+  .splash-title {
+    width: 100%;
+  } 
+
+  .splash-name-wrap {
+    max-width: 400px;
   }
 }
 
@@ -1287,61 +1472,12 @@ button:active {
   flex-shrink: 0;
 }
 
-/* ---- SPLASH NAME INPUT ---- */
-
-.splash-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.75rem;
-  width: 100%;
-}
-
-.splash-name-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .75rem;
-  width: 100%;
-  max-width: 340px;
-}
-
-.splash-name-input {
-  width: 100%;
-  padding: .75rem 1rem;
-  font-family: var(--font-pixel);
-  font-size: var(--text-2xs);
-  color: var(--neutral-0);
-  background: var(--neutral-100);
-  border: var(--border-brand-thick);
-  letter-spacing: .06em;
-  outline: none;
-  caret-color: var(--brand);
-}
-
-.splash-name-input::placeholder {
-  color: var(--neutral-40);
-  opacity: 1;
-}
-
-.splash-name-input:focus {
-  border-color: var(--neutral-0);
-}
-
-@media (max-width: 767px) {
-  .splash-name-input {
-    font-size: var(--text-md);
+@media (orientation: landscape) and (max-height: 500px) {
+  .info-modal {
+    max-width: unset;
+    padding: 1rem;
+    gap: 1rem;
   }
-}
-
-.splash-name-notice {
-  font-family: var(--font-pixel);
-  font-size: var(--text-4xs);
-  color: var(--neutral-0);
-  text-align: center;
-  letter-spacing: var(--tracking-pixel);
-  line-height: var(--leading-body);
-  text-transform: uppercase;
 }
 
 /* ---- RANKING SCREEN ---- */
@@ -1494,5 +1630,20 @@ button:active {
 @media (max-width: 767px) {
   .ranking-row {
     font-size: var(--text-xs);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .ranking-overlay {
+    inset: 1rem;
+  }
+
+  .ranking-list {
+    width: 70%;
+    margin-top: 1.5rem;
+  }
+
+  .splash-start.ranking-play-again {
+    margin-top: .5rem;
   }
 }
