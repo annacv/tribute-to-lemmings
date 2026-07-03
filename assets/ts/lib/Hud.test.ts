@@ -3,7 +3,7 @@ import { SurfaceGame } from '../worlds/surface/SurfaceGame';
 import { TunnelGame } from '../worlds/tunnel/TunnelGame';
 import { AbyssGame, THROW_FLIGHT_STEPS } from '../worlds/abyss/AbyssGame';
 import { Stalactite, STALACTITE_COST } from '../entities/Stalactite';
-import { LEVEL_POINTS, STALACTITE_POINTS, makeBreakdown } from './score';
+import { LEVEL_POINTS, STALACTITE_POINTS, makeBreakdown, LEVEL_THRESHOLDS_S } from './score';
 import { STEPS_PER_SECOND } from './GameLoop';
 import { makeCanvas, mountPlayHudDom, stepUntil, stubAnimationFrame } from '../test-helpers';
 import { makeAbyssGame } from '../test-game-factories';
@@ -41,10 +41,11 @@ describe('Hud — score gain feedback', () => {
 
   it('surface level-up shows a bank-pop with level points', () => {
     const game = new SurfaceGame(canvas, noop, noop);
-    game.currentLevel = 0;
-    game.score = 18;
+    game.currentLevel = 1;
+    game.score = LEVEL_THRESHOLDS_S[2];
     game['checkLevelUp']();
     expect(document.querySelector('.bank-pop')?.textContent).toBe(`+${LEVEL_POINTS}`);
+    expect(document.querySelector('.level-up-banner')?.textContent).toBe('Level 3');
   });
 
   it('tunnel cycle breach shows a bank-pop with level points', () => {
@@ -54,6 +55,7 @@ describe('Hud — score gain feedback', () => {
     game.fuseStepsLeft = 1;
     game.step();
     expect(document.querySelector('.bank-pop')?.textContent).toBe(`+${LEVEL_POINTS}`);
+    expect(document.querySelector('.level-up-banner')?.textContent).toBe('Level 2');
   });
 
   it('abyss level-up shows a bank-pop with level points', () => {
@@ -61,6 +63,7 @@ describe('Hud — score gain feedback', () => {
     game.stepCount = 18 * STEPS_PER_SECOND;
     game['checkLevelUp']();
     expect(document.querySelector('.bank-pop')?.textContent).toBe(`+${LEVEL_POINTS}`);
+    expect(document.querySelector('.level-up-banner')?.textContent).toBe('Level 2');
   });
 
   it.each([
