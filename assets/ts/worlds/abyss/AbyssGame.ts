@@ -36,12 +36,9 @@ const SCREEN_LEFT_MARGIN_FRAC = 0.04;   // nearest the lemming gets to the canva
 const CORRIDOR_START_FRAC = 0.34;       // inner face of the left framing column; the lemming starts right of it
 const SPAWN_AHEAD_FRAC = 1.2;           // stalactites seeded just past the right edge
 const CULL_BEHIND_FRAC = 1.0;           // drop hazards this far behind the camera
-export const EXIT_DOOR_SCREEN_FRAC = 0.8; // exit door x as a screen fraction (see reachDoor)
 
 const CARRY_CAP = 3;                    // max. number of bombs the lemming can carry
 export const THROW_RANGE_FRAC = 0.18;   // "near a stalactite" — wide enough to throw without standing dead-centre
-/** Keep the last stalactite left of the door with room to stand and throw. */
-export const STALACTITE_EXIT_CLEARANCE_FRAC = THROW_RANGE_FRAC + 0.1;
 export const THROW_FLIGHT_STEPS = 10;   // frames a thrown bomb takes to fly up to the stalactite
 const BOMB_SPAWN_MAX_FRAC = 0.88;       // right edge of the bomb-spawn band
 
@@ -367,17 +364,9 @@ export class AbyssGame implements AbyssView {
     this.lastBombSpawn = this.stepCount;
   }
 
-  private stalactiteSpawnLimit(): number {
-    const w = this.canvas.width;
-    return this.cameraX + w * (EXIT_DOOR_SCREEN_FRAC - STALACTITE_EXIT_CLEARANCE_FRAC);
-  }
-
   private spawnStalactitesAhead(): void {
     const canvasWidth = this.canvas.width;
-    const limit = Math.min(
-      this.cameraX + canvasWidth * SPAWN_AHEAD_FRAC,
-      this.stalactiteSpawnLimit(),
-    );
+    const limit = this.cameraX + canvasWidth * SPAWN_AHEAD_FRAC;
     while (this.nextStalactiteWorldX < limit) {
       const level = ABYSS_LEVEL_CONFIG[this.currentLevel];
       this.stalactites.push(new Stalactite(this.nextSize(level.sizes), this.nextStalactiteWorldX));
@@ -474,7 +463,7 @@ export class AbyssGame implements AbyssView {
     this.isOver = true;
     // Camera is player-driven, so the exit has no fixed world X — place it beside the
     // lemming (right of screen) for the close tween.
-    this.exitWorldX = this.cameraX + this.canvas.width * EXIT_DOOR_SCREEN_FRAC;
+    this.exitWorldX = this.cameraX + this.canvas.width * 0.8;
   }
 
   private endRun(): void {
