@@ -585,7 +585,8 @@ canvas {
 }
 
 .hud-item.blink,
-.hud-score.blink {
+.hud-label.blink,
+.hud-value.blink {
   animation: hud-blink 0.4s ease-in-out 3;
 }
 

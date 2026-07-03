@@ -37,8 +37,15 @@ export class Hud {
     pop.addEventListener('animationend', () => pop.remove(), { once: true });
   }
 
+  private blinkHudText(container: HTMLElement): void {
+    container.querySelectorAll('.hud-label, .hud-value').forEach((el) => {
+      restartAnimation(el, 'blink');
+    });
+  }
+
   blinkHudScore(): void {
-    restartAnimation(this.query('.hud-score'), 'blink');
+    const score = this.query('.hud-score');
+    if (score) this.blinkHudText(score);
   }
 
   /** Floats "+N" and blinks the score slot when points are banked. */
@@ -50,7 +57,8 @@ export class Hud {
   setLevel(label: string): void {
     const level = this.query('.level-value');
     if (level) level.textContent = label;
-    restartAnimation(this.query('.level-item'), 'blink');
+    const levelItem = this.query('.level-item');
+    if (levelItem) this.blinkHudText(levelItem);
   }
 
   showLevelBanner(label: string): void {
