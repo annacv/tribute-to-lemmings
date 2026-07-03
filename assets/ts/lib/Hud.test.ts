@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { SurfaceGame } from '../worlds/surface/SurfaceGame';
-import { TunnelGame } from '../worlds/tunnel/TunnelGame';
+import { TunnelGame, BREACH_PAN_END_STEPS } from '../worlds/tunnel/TunnelGame';
 import { AbyssGame, THROW_FLIGHT_STEPS } from '../worlds/abyss/AbyssGame';
 import { Stalactite, STALACTITE_COST } from '../entities/Stalactite';
 import { LEVEL_POINTS, STALACTITE_POINTS, makeBreakdown, LEVEL_THRESHOLDS_S } from './score';
@@ -48,13 +48,15 @@ describe('Hud — score gain feedback', () => {
     expect(document.querySelector('.level-up-banner')?.textContent).toBe('Level 3');
   });
 
-  it('tunnel cycle breach shows a bank-pop with level points', () => {
+  it('tunnel cycle breach shows a bank-pop at the explosion and level banner after the pan', () => {
     const game = new TunnelGame(canvas, makeBreakdown(), noop, noop);
     game.startGame();
     game.state = 'armed';
     game.fuseStepsLeft = 1;
     game.step();
     expect(document.querySelector('.bank-pop')?.textContent).toBe(`+${LEVEL_POINTS}`);
+    expect(document.querySelector('.level-up-banner')?.textContent).toBe('');
+    for (let i = 0; i < BREACH_PAN_END_STEPS; i++) game.step();
     expect(document.querySelector('.level-up-banner')?.textContent).toBe('Level 2');
   });
 
